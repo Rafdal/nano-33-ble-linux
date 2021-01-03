@@ -4,14 +4,17 @@
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 
-#include <SD.h>
 
 Adafruit_MPU6050 mpu;
 unsigned int sampling_period_us;
 double freq = 400; // $ Hz
 #define SAMPLING 512
-const uint16_t samples = SAMPLING;	
+const uint16_t samples = SAMPLING;
 
+#define ARCHIVOS 450
+
+#include <datalog.h>
+Datalog datalog("mov");
 
 void setup(void) {
 	Serial.begin(921600);
@@ -51,39 +54,47 @@ void setup(void) {
 
 unsigned long us, ms_stamp;
 
-float x[SAMPLING], y[SAMPLING], z[SAMPLING];
+// float x[SAMPLING], y[SAMPLING], z[SAMPLING];
+
+datalog_type_t data;
 
 void loop() {
 
 	/* Get new sensor events with the readings */
-
-	us = micros();
-	ms_stamp = millis();
-	for (int i = 0; i < samples; i++)
+	for (size_t j = 0; j < ARCHIVOS; j++)
 	{
-		sensors_event_t a, g, temp;
-		mpu.getEvent(&a, &g, &temp);
+		us = micros();
+		ms_stamp = millis();
+		for (int i = 0; i < samples; i++)
+		{
+			sensors_event_t a, g, temp;
+			mpu.getEvent(&a, &g, &temp);
 
-		x[i] = a.acceleration.x;
-		y[i] = a.acceleration.y;
-		z[i] = a.acceleration.z;
+			data.x[i] = a.acceleration.x;
+			data.y[i] = a.acceleration.y;
+			data.z[i] = a.acceleration.z;
 
-		while (micros() - us < sampling_period_us);
+			while (micros() - us < sampling_period_us);
 
-		us += sampling_period_us;
+			us += sampling_period_us;
+		}
+		Serial.println("Time2Read");
+		Serial.println(millis() - ms_stamp);
+
+		datalog.log(data);
+
+		/* for (uint16_t i = 0; i < samples; i++)
+		{
+			Serial.print(x[i]);
+			Serial.print(",\t");
+			Serial.print(y[i]);
+			Serial.print(",\t");
+			Serial.println(z[i]);
+		} */
+		Serial.print(j);
+		Serial.println(F(" Lectura Finalizada"));
 	}
-	Serial.println("Time2Read");
-	Serial.println(millis() - ms_stamp);
 
-	for (uint16_t i = 0; i < samples; i++)
-	{
-		Serial.print(x[i]);
-		Serial.print(",\t");
-		Serial.print(y[i]);
-		Serial.print(",\t");
-		Serial.println(z[i]);
-	}
-	
 
 	for(;;);
 }

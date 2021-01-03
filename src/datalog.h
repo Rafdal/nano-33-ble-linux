@@ -1,31 +1,41 @@
+#include <SPI.h>
 #include <SD.h>
 
-class datalog
+typedef struct datalog_type
+{
+    float x[SAMPLING];
+	float y[SAMPLING];
+	float z[SAMPLING];
+}datalog_type_t;
+
+
+class Datalog
 {
 private:
     String name;
     size_t file_idx=0;
 
 public:
-    datalog();
-    ~datalog();
+    Datalog(String _name);
+    ~Datalog();
 
-    
+    void log(datalog_type_t data);
 };
 
-datalog::datalog()
+Datalog :: Datalog(String _name)
 {
+    name = _name;
 }
 
-datalog::~datalog()
-{
-}
+Datalog :: ~Datalog(){}
 
-datalog :: log()
+
+void Datalog :: log(datalog_type_t data)
 {
+    String filename;
     for (; file_idx < 1024; file_idx++)    
     {
-        String filename = name + String(file_idx) + ".csv";
+        filename = name + String(file_idx) + ".csv";
         if (SD.exists(filename)) {;}
         else {break;}
     }
@@ -34,19 +44,17 @@ datalog :: log()
 
     if (dataFile) 
     {
+        Serial.println(F("Archivo abierto correctamente"));
         dataFile.println("x,\ty,\tz");
-        for (uint16_t i = 0; i < n_cols ; i++)
+        for (uint16_t i = 0; i < SAMPLING ; i++)
         {
-            dataFile.print(i);
-            Serial.print(i);
-            if (i < n_cols-1)
-            {
-                dataFile.print(',');
-                Serial.print(',');
-            }            
+            dataFile.print(data.x[i]);
+            dataFile.print(",\t");
+            dataFile.print(data.y[i]);
+            dataFile.print(",\t");
+            dataFile.print(data.z[i]);
+            dataFile.println();
         }
-        dataFile.println();
-        Serial.println();
     }
     else
     {
