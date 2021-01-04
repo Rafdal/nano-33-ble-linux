@@ -7,14 +7,14 @@
 
 Adafruit_MPU6050 mpu;
 unsigned int sampling_period_us;
-double freq = 400; // $ Hz
+double freq = 1000; // $ Hz
 #define SAMPLING 512
 const uint16_t samples = SAMPLING;
 
-#define ARCHIVOS 450
+#define ARCHIVOS 256
 
 #include <datalog.h>
-Datalog datalog("mov");
+Datalog datalog("mov"); // Nombre del archivo
 
 void setup(void) {
 	Serial.begin(921600);
@@ -27,7 +27,7 @@ void setup(void) {
 	if (!mpu.begin()) {
 		Serial.println("Failed to find MPU6050 chip");
 		while (1) {
-		delay(10);
+			delay(10);
 		}
 	}
 	Serial.println("MPU6050 Found!");
@@ -54,7 +54,6 @@ void setup(void) {
 
 unsigned long us, ms_stamp;
 
-// float x[SAMPLING], y[SAMPLING], z[SAMPLING];
 
 datalog_type_t data;
 
@@ -63,12 +62,12 @@ void loop() {
 	/* Get new sensor events with the readings */
 	for (size_t j = 0; j < ARCHIVOS; j++)
 	{
-		us = micros();
 		ms_stamp = millis();
+		us = micros();
 		for (int i = 0; i < samples; i++)
 		{
-			sensors_event_t a, g, temp;
-			mpu.getEvent(&a, &g, &temp);
+			sensors_event_t a;
+			mpu.getAccelEvent(&a);
 
 			data.x[i] = a.acceleration.x;
 			data.y[i] = a.acceleration.y;
@@ -85,12 +84,14 @@ void loop() {
 
 		/* for (uint16_t i = 0; i < samples; i++)
 		{
-			Serial.print(x[i]);
+			Serial.print(data.x[i]);
 			Serial.print(",\t");
-			Serial.print(y[i]);
+			Serial.print(data.y[i]);
 			Serial.print(",\t");
-			Serial.println(z[i]);
+			Serial.println(data.z[i]);
 		} */
+		// for(;;);
+
 		Serial.print(j);
 		Serial.println(F(" Lectura Finalizada"));
 	}
