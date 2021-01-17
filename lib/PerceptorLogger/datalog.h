@@ -12,25 +12,17 @@ typedef struct datalog_type
 class Datalog
 {
 private:
-    String name;
     size_t file_idx=0;
 
 public:
-    Datalog(String _name);
-    ~Datalog();
+    Datalog(){}
+    ~Datalog(){}
 
-    void log(datalog_type_t data);
+    void log(datalog_type_t data, String name);
 };
 
-Datalog :: Datalog(String _name)
-{
-    name = _name;
-}
 
-Datalog :: ~Datalog(){}
-
-
-void Datalog :: log(datalog_type_t data)
+void Datalog :: log(datalog_type_t data, String name)
 {
     String filename;
     for (; file_idx < 1024; file_idx++)    
@@ -45,13 +37,15 @@ void Datalog :: log(datalog_type_t data)
     if (dataFile) 
     {
         Serial.println(F("Archivo abierto correctamente"));
-        dataFile.println("x,\ty,\tz");
+        dataFile.println("timestamp,x,y,z");
         for (uint16_t i = 0; i < SAMPLING ; i++)
         {
+            dataFile.print(i);
+            dataFile.print(",");
             dataFile.print(data.x[i]);
-            dataFile.print(",\t");
+            dataFile.print(",");
             dataFile.print(data.y[i]);
-            dataFile.print(",\t");
+            dataFile.print(",");
             dataFile.print(data.z[i]);
             dataFile.println();
         }
