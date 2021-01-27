@@ -15,9 +15,7 @@ private:
     Adafruit_MPU6050 mpu;
     unsigned int sampling_period_us;
     double freq = 1000; // $ Hz
-    uint16_t samples = SAMPLING;
-
-    #define ARCHIVOS 256
+    uint16_t samples;
     
 public:
     PerceptorLogger(){}
@@ -25,8 +23,10 @@ public:
 
     void initialize(double _freq, uint16_t _samples);
 
-    void logFiles(uint16_t files, String name);
+    void readAndLog(uint16_t files, String name);
+    // void logFile(uint16_t files, String name);
 };
+
 
 void PerceptorLogger::initialize(double _freq = 1000, uint16_t _samples = 512){
 
@@ -34,7 +34,6 @@ void PerceptorLogger::initialize(double _freq = 1000, uint16_t _samples = 512){
     samples = _samples;
 
     // Try to initialize!
-    bool value=true;
 
 	if (!mpu.begin()) {
         pinMode(LED_BUILTIN, OUTPUT);
@@ -70,11 +69,12 @@ void PerceptorLogger::initialize(double _freq = 1000, uint16_t _samples = 512){
 }
 
 
-void PerceptorLogger::logFiles(uint16_t files, String name){
+void PerceptorLogger::readAndLog(uint16_t files, String name){
     
     unsigned long us, ms_stamp;
     Datalog datalog; // Nombre del archivo
-    datalog_type_t data;
+
+    DataArray data(samples, 3);
 
     for (uint16_t j = 0; j < files; j++)
 	{
@@ -85,9 +85,12 @@ void PerceptorLogger::logFiles(uint16_t files, String name){
 			sensors_event_t a;
 			mpu.getAccelEvent(&a);
 
-			data.x[i] = a.acceleration.x;
-			data.y[i] = a.acceleration.y;
-			data.z[i] = a.acceleration.z;
+			data.set(i, 0, a.acceleration.x);
+			data.set(i, 1, a.acceleration.y);
+			data.set(i, 2, a.acceleration.z);
+			// data.x[i] = a.acceleration.x;
+			// data.y[i] = a.acceleration.y;
+			// data.z[i] = a.acceleration.z;
 
 			while (micros() - us < sampling_period_us);
 
@@ -96,7 +99,7 @@ void PerceptorLogger::logFiles(uint16_t files, String name){
 		Serial.print("Time2Read: ");
 		Serial.println(millis() - ms_stamp);
 
-		datalog.log(data, name);
+		datalog.log(&data, name);
 
 		/* for (uint16_t i = 0; i < samples; i++)
 		{

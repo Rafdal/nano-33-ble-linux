@@ -1,12 +1,9 @@
+#include <Arduino.h>
 #include <SPI.h>
 #include <SD.h>
 
-typedef struct datalog_type
-{
-    float x[SAMPLING];
-	float y[SAMPLING];
-	float z[SAMPLING];
-}datalog_type_t;
+
+#include "DataArray.h"
 
 
 class Datalog
@@ -18,16 +15,17 @@ public:
     Datalog(){}
     ~Datalog(){}
 
-    void log(datalog_type_t data, String name);
+    String log(DataArray* data, String name, String colnames = "timestamp,x,y,z");
 };
 
 
-void Datalog :: log(datalog_type_t data, String name)
+String Datalog :: log(DataArray* data, String name, String colnames)
 {
     String filename;
     for (; file_idx < 1024; file_idx++)    
     {
-        filename = name + String(file_idx) + ".csv";
+        delay(0);
+        filename = name + String(file_idx) + ".CSV";
         if (SD.exists(filename)) {;}
         else {break;}
     }
@@ -37,17 +35,19 @@ void Datalog :: log(datalog_type_t data, String name)
     if (dataFile) 
     {
         Serial.println(F("Archivo abierto correctamente"));
-        dataFile.println("timestamp,x,y,z");
-        for (uint16_t i = 0; i < SAMPLING ; i++)
+        dataFile.println(colnames);
+        for (uint16_t x = 0; x < data->sizeX ; x++)
         {
-            dataFile.print(i);
+            dataFile.print(x);
             dataFile.print(",");
-            dataFile.print(data.x[i]);
-            dataFile.print(",");
-            dataFile.print(data.y[i]);
-            dataFile.print(",");
-            dataFile.print(data.z[i]);
+            for (uint8_t y = 0; y < (data->sizeY)-1; y++)
+            {
+                dataFile.print(data->operator()(x , y));
+                dataFile.print(",");
+            }
+            dataFile.print(data->operator()(x , data->sizeY-1));
             dataFile.println();
+            delay(0);
         }
     }
     else
@@ -55,4 +55,6 @@ void Datalog :: log(datalog_type_t data, String name)
         Serial.println(F("Error abriendo el archivo"));
     }
     dataFile.close();
+
+    return filename;
 }
