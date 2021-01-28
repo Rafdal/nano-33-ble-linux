@@ -2,6 +2,10 @@
     "files.associations": {
         "*.tcc": "cpp",
         "forward_list": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "fstream": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp",
+        "thread": "cpp"
     }
 }

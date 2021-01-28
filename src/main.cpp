@@ -6,8 +6,15 @@
 
 PerceptorLogger logger;
 
+#include <SerialSetup.h>
+SerialSetup ser;
+
 void setup(void) {
-	Serial.begin(921600);
+	Serial.begin(115200);
+
+	delay(800);
+
+	Serial.println(F("Init"));
 
 	pinMode(LED_BUILTIN, OUTPUT);	
 
@@ -18,10 +25,16 @@ void setup(void) {
 		digitalWrite(LED_BUILTIN, LOW);
 		delay(500);
 	}
-	
 
-	logger.initialize();
-	Serial.readString();
+	ser.setupLoop([](){
+		ser.get("Ingresar SSID");
+		ser.get("Ingresar contrasenia");
+		delay(2000);
+
+		Serial.println(F("Muchas gracias"));
+	});
+
+	// logger.initialize();
 }
 
 
@@ -31,6 +44,8 @@ unsigned long currentMs=0;
 
 void loop() {
 
+	ser.listen();
+
 	currentMs = millis();
 	if (currentMs - lastMs > 1000)
 	{
@@ -39,10 +54,5 @@ void loop() {
 		lastMs = currentMs;
 	}
 
-	if (Serial.available())
-	{
-		logger.logFiles(25, "SET");
-		Serial.readString();
-	}
-
+	// logger.readAndLog(25, "SET");
 }
