@@ -22,9 +22,11 @@ public:
     ~PerceptorLogger(){}
 
     void initialize(double _freq, uint16_t _samples);
+	void initSD(uint8_t pin);
 
     void readAndLog(uint16_t files, String name);
     // void logFile(uint16_t files, String name);
+	void logFor(double _seconds, uint16_t _max_samples);
 };
 
 
@@ -55,10 +57,14 @@ void PerceptorLogger::initialize(double _freq = 1000, uint16_t _samples = 512){
 
 	sampling_period_us = round(1000000 * (1.0 / freq));
 
+	// initSD(4);
+}
 
-	pinMode(4, OUTPUT);
-    digitalWrite(4, LOW);   // Activar SD
-    if (!SD.begin(4)) {
+void PerceptorLogger::initSD(uint8_t pin)
+{
+	pinMode(pin, OUTPUT);
+    digitalWrite(pin, LOW);   // Activar SD
+    if (!SD.begin(pin)) {
         pinMode(LED_BUILTIN, OUTPUT);
         while(1){
             delay(1000);
@@ -68,6 +74,31 @@ void PerceptorLogger::initialize(double _freq = 1000, uint16_t _samples = 512){
     Serial.println(F("SD card initialized.\n"));
 }
 
+// Hacer una sola lectura
+void PerceptorLogger::logFor(double _seconds, uint16_t _max_samples = 1024)
+{
+	unsigned long ms_stamp = millis(), us = micros();
+	unsigned long max_ms_stamp = ms_stamp + (unsigned long)(_seconds*1000);
+
+	Serial.println(F("t,x,y,z"));
+	for (int i = 0; i < _max_samples && max_ms_stamp > millis(); i++)
+	{
+		sensors_event_t a;
+		mpu.getAccelEvent(&a);
+
+		Serial.print(i); Serial.print(',');
+		Serial.print(a.acceleration.x); Serial.print(',');
+		Serial.print(a.acceleration.y); Serial.print(',');
+		Serial.println(a.acceleration.z);
+		// data.x[i] = a.acceleration.x;
+		// data.y[i] = a.acceleration.y;
+		// data.z[i] = a.acceleration.z;
+
+		while (micros() - us < sampling_period_us);
+
+		us += sampling_period_us;
+	}
+}
 
 void PerceptorLogger::readAndLog(uint16_t files, String name){
     

@@ -10,7 +10,7 @@ PerceptorLogger logger;
 SerialSetup ser;
 
 void setup(void) {
-	Serial.begin(115200);
+	Serial.begin(230400);
 
 	delay(800);
 
@@ -27,14 +27,13 @@ void setup(void) {
 	}
 
 	ser.setupLoop([](){
-		ser.get("Ingresar SSID");
-		ser.get("Ingresar contrasenia");
-		delay(2000);
-
-		Serial.println(F("Muchas gracias"));
+		ser.on("read", [](){
+			delay(500);
+			logger.logFor(3, 512);
+		});
 	});
 
-	// logger.initialize();
+	logger.initialize(150);
 }
 
 
@@ -53,6 +52,4 @@ void loop() {
 		ledState = !ledState;
 		lastMs = currentMs;
 	}
-
-	// logger.readAndLog(25, "SET");
 }

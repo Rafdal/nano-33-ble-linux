@@ -6,6 +6,7 @@
         "fstream": "cpp",
         "istream": "cpp",
         "ostream": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "typeinfo": "cpp"
     }
 }
